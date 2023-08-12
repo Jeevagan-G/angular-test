@@ -34,6 +34,7 @@
             <button
               mat-flat-button
               color="primary"
+              data-testing="add-book"
               [attr.aria-label]="'Add ' + b.title + ' book to reading list'"
               (click)="addBookToReadingList(b)"
               [disabled]="b.isAdded"

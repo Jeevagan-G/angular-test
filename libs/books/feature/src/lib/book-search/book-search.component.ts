@@ -5,11 +5,13 @@ import {
   clearSearch,
   getAllBooks,
   ReadingListBook,
+  removeFromReadingList,
   searchBooks,
 } from '@tmo/books/data-access';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Book } from '@tmo/shared/models';
 import { Subscription } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'tmo-book-search',
@@ -19,6 +21,7 @@ import { Subscription } from 'rxjs';
 export class BookSearchComponent implements OnInit, OnDestroy {
   books: ReadingListBook[];
   getAllBook$: Subscription;
+  snackBar$: Subscription;
 
   searchForm: FormGroup = this.fb.group({
     term: '',
@@ -26,7 +29,8 @@ export class BookSearchComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly store: Store,
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    private _snackbar: MatSnackBar
   ) {}
 
   get searchTerm(): string {
@@ -47,6 +51,16 @@ export class BookSearchComponent implements OnInit, OnDestroy {
 
   addBookToReadingList(book: Book): void {
     this.store.dispatch(addToReadingList({ book }));
+    this.snackBar$ = this._snackbar
+      .open('Added', 'Undo', {
+        duration: 5000,
+        panelClass: 'test-add-redo-action',
+      })
+      .onAction()
+      .subscribe(() => {
+        const item = { bookId: book.id, ...book };
+        this.store.dispatch(removeFromReadingList({ item }));
+      });
   }
 
   searchExample(): void {
@@ -64,5 +78,6 @@ export class BookSearchComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.getAllBook$ ? this.getAllBook$.unsubscribe() : '';
+    this.snackBar$ ? this.snackBar$.unsubscribe() : '';
   }
 }
