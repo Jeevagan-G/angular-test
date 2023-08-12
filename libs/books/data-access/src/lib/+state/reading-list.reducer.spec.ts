@@ -1,3 +1,4 @@
+import { Update } from '@ngrx/entity';
 import * as ReadingListActions from './reading-list.actions';
 import {
   initialState,
@@ -6,6 +7,7 @@ import {
   State,
 } from './reading-list.reducer';
 import { createBook, createReadingListItem } from '@tmo/shared/testing';
+import { ReadingListItem } from '@tmo/shared/models';
 
 describe('Books Reducer', () => {
   describe('valid Books actions', () => {
@@ -50,6 +52,25 @@ describe('Books Reducer', () => {
       const result: State = reducer(state, action);
 
       expect(result.ids).toEqual(['A', 'B', 'C']);
+    });
+
+    it('confirmedFinishedReading should update book as finished from the state', () => {
+      const updateItem: Update<ReadingListItem> = {
+        id: 'A',
+        changes: { finished: true, finishedDate: new Date().toISOString() },
+      };
+      const action = ReadingListActions.confirmedFinishedReading({
+        updateItem,
+      });
+      const result: State = reducer(state, action);
+      expect(result.entities[updateItem.id].finished).toBeTruthy();
+    });
+
+    it('failedFinishedReading should update book as finished from the state', () => {
+      const error = 'failed to update';
+      const action = ReadingListActions.failedFinishedReading({ error });
+      const result: State = reducer(state, action);
+      expect(result.error).toBe(error);
     });
   });
 

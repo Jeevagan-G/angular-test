@@ -4,9 +4,14 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { SharedTestingModule } from '@tmo/shared/testing';
+import {
+  SharedTestingModule,
+  createReadingListItem,
+} from '@tmo/shared/testing';
 import { ReadingListEffects } from './reading-list.effects';
 import * as ReadingListActions from './reading-list.actions';
+import { ReadingListItem } from '@tmo/shared/models';
+import { Update } from '@ngrx/entity';
 
 describe('ToReadEffects', () => {
   let actions: ReplaySubject<any>;
@@ -19,8 +24,8 @@ describe('ToReadEffects', () => {
       providers: [
         ReadingListEffects,
         provideMockActions(() => actions),
-        provideMockStore()
-      ]
+        provideMockStore(),
+      ],
     });
 
     effects = TestBed.inject(ReadingListEffects);
@@ -28,11 +33,11 @@ describe('ToReadEffects', () => {
   });
 
   describe('loadReadingList$', () => {
-    it('should work', done => {
+    it('should work', (done) => {
       actions = new ReplaySubject();
       actions.next(ReadingListActions.init());
 
-      effects.loadReadingList$.subscribe(action => {
+      effects.loadReadingList$.subscribe((action) => {
         expect(action).toEqual(
           ReadingListActions.loadReadingListSuccess({ list: [] })
         );
@@ -40,6 +45,31 @@ describe('ToReadEffects', () => {
       });
 
       httpMock.expectOne('/api/reading-list').flush([]);
+    });
+  });
+
+  describe('finishBook$', () => {
+    it('should work', (done) => {
+      const item: ReadingListItem = createReadingListItem('A');
+      actions = new ReplaySubject();
+      actions.next(ReadingListActions.finishedReading({ item }));
+      const resItem: ReadingListItem = {
+        ...item,
+        finished: true,
+        finishedDate: new Date().toISOString(),
+      };
+      const updateItem: Update<ReadingListItem> = {
+        id: 'A',
+        changes: { finished: true, finishedDate: resItem.finishedDate },
+      };
+
+      effects.finishBook$.subscribe((action) => {
+        expect(action).toEqual(
+          ReadingListActions.confirmedFinishedReading({ updateItem })
+        );
+        done();
+      });
+      httpMock.expectOne('/api/reading-list/A/finished').flush(resItem);
     });
   });
 });
