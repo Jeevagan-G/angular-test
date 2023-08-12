@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { catchError, concatMap, exhaustMap, map } from 'rxjs/operators';
 import { ReadingListItem } from '@tmo/shared/models';
 import * as ReadingListActions from './reading-list.actions';
+import { Update } from '@ngrx/entity';
 
 @Injectable()
 export class ReadingListEffects implements OnInitEffects {
@@ -51,6 +52,33 @@ export class ReadingListEffects implements OnInitEffects {
           )
         )
       )
+    )
+  );
+
+  finishBook$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReadingListActions.finishedReading),
+      concatMap(({ item }) => {
+        return this.http
+          .put(`/api/reading-list/${item.bookId}/finished`, item)
+          .pipe(
+            map((res: ReadingListItem) => {
+              const updateItem: Update<ReadingListItem> = {
+                id: res.bookId,
+                changes: {
+                  finished: res.finished,
+                  finishedDate: res.finishedDate,
+                },
+              };
+              return ReadingListActions.confirmedFinishedReading({
+                updateItem,
+              });
+            }),
+            catchError((error) =>
+              of(ReadingListActions.failedFinishedReading(error))
+            )
+          );
+      })
     )
   );
 

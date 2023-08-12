@@ -4,6 +4,7 @@
   display: block;
   font-size: 0.75rem;
 }
+
 .reading-list {
   padding: $spacing-xxs;
 }
@@ -19,6 +20,17 @@
     flex-direction: column;
     justify-content: center;
   }
+}
+
+.read-finished {
+  color: green;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.read-btn-section{
+  flex-direction: row !important;
 }
 
 .reading-list-item--cover {

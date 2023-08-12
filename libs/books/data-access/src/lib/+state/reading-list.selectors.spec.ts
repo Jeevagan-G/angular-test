@@ -1,10 +1,11 @@
 import { initialState, readingListAdapter } from './reading-list.reducer';
 import {
   booksAdapter,
-  initialState as booksInitialState
+  initialState as booksInitialState,
 } from './books.reducer';
 import * as ToReadSelectors from './reading-list.selectors';
 import { createBook, createReadingListItem } from '@tmo/shared/testing';
+import { Book } from '@tmo/shared/models';
 
 describe('ReadingList Selectors', () => {
   let state;
@@ -16,21 +17,21 @@ describe('ReadingList Selectors', () => {
         {
           ...booksInitialState,
           error: 'Unknown error',
-          loaded: true
+          loaded: true,
         }
       ),
       readingList: readingListAdapter.addMany(
         [
           createReadingListItem('A'),
           createReadingListItem('B'),
-          createReadingListItem('C')
+          createReadingListItem('C'),
         ],
         {
           ...initialState,
           error: 'Unknown error',
-          loaded: true
+          loaded: true,
         }
-      )
+      ),
     };
   });
 
@@ -39,13 +40,23 @@ describe('ReadingList Selectors', () => {
       const results = ToReadSelectors.getReadingList(state);
 
       expect(results.length).toBe(3);
-      expect(results.map(x => x.bookId)).toEqual(['A', 'B', 'C']);
+      expect(results.map((x) => x.bookId)).toEqual(['A', 'B', 'C']);
     });
 
     it("getTotalUnread() should return the current 'loaded' status", () => {
       const result = ToReadSelectors.getTotalUnread(state);
 
       expect(result).toBe(3);
+    });
+
+    it("getAllBooks() should return the current 'loaded' status", () => {
+      const bookList: Book[] = [
+        createBook('A'),
+        createBook('B'),
+        createBook('C'),
+      ].map((b) => ({ ...b, isAdded: true, isFinished: false }));
+      const result = ToReadSelectors.getAllBooks(state);
+      expect(result).toEqual(bookList);
     });
   });
 });
